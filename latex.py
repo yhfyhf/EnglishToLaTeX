@@ -2,6 +2,7 @@
 from utils import Utils
 from table import table
 
+
 class EnglishToLatex(object):
     def preprocess_meaningless_characters(self, input):
         """
@@ -124,5 +125,5 @@ if __name__ == '__main__':
     assert s.to_latex("124 + 4 * 5") == "124 + 4 \\times 5"
     assert s.to_latex("1 + 2 * 3, - 4 divided by 5.") == "1 + 2 \\times 3 - \\frac{4}{5}"
     assert s.to_latex("3 times left 2 + 4 right.") == "3 \\times (2 + 4)"
-    assert s.to_latex("2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
-
+    assert s.to_latex(
+        "2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
