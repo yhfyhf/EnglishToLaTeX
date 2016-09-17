@@ -1,5 +1,5 @@
 # encoding: utf-8
-ass Utils(object):
+class Utils(object):
     @staticmethod
     def is_float(s):
         state = [{},
