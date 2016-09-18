@@ -1,15 +1,17 @@
 # encoding: utf-8
 from utils import Utils
-from table import table
+from table import replace_table, table
 
 
 class EnglishToLatex(object):
-    def preprocess(self, input):
+    def preprocess(self, input_):
         """
-        :param input: String
+        :param input_: String
         :return: void
         """
-        preprocessed = filter(lambda x: bool(x), map(self.preprocessTerminator, input.lower().split()))
+        for p, r in replace_table:
+            input_ = input_.replace(p, r)
+        preprocessed = filter(lambda x: bool(x), map(self.preprocessTerminator, input_.lower().split()))
         ret = self.combineNumbers(preprocessed)
         return " ".join(ret)
 
@@ -136,13 +138,26 @@ class Token(object):
 if __name__ == '__main__':
     s = EnglishToLatex()
 
+    assert s.preprocess("x square") == "x power 2"
+    assert s.preprocess("(x + 1) square") == "(x + 1) power 2"
+    assert s.preprocess("x power of 3") == "x power 3"
+    assert s.preprocess("x to power of 3") == "x power 3"
+    assert s.preprocess("x to the power of 3") == "x power 3"
+
+    assert s.preprocess("square root of x") == "2 root x"
+    assert s.preprocess("square root of x + 1") == "2 root x + 1"
+    assert s.preprocess("square root of (x + 1)") == "2 root (x + 1)"
+    assert s.preprocess("cube root of x") == "3 root x"
+    assert s.preprocess("cube root of x + 1") == "3 root x + 1"
+    assert s.preprocess("seventh root of x") == "7 root x"
+    assert s.preprocess("seven root of x") == "7 root x"
+    assert s.preprocess("seven root x") == "7 root x"
+
     assert s.preprocess("1 2 . 34 . , 5 + 6 + 8 , 9") == "12345 + 6 + 89"
 
     assert s.to_latex("1 plus 2") == "1 + 2"
     assert s.to_latex("124 + 4 * 5") == "124 + 4 \\times 5"
     assert s.to_latex("1 + 2 * 3, - 4 divided by 5.") == "1 + 2 \\times 3 - \\frac{4}{5}"
     assert s.to_latex("3 times left 2 + 4 right.") == "3 \\times (2 + 4)"
-    assert s.to_latex(
-        "2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \times (\frac{(3 + 2)}{(2 - 1)})"
     assert s.to_latex(
         "2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
