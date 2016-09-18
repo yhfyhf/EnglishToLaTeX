@@ -4,12 +4,29 @@ from table import table
 
 
 class EnglishToLatex(object):
-    def preprocess_meaningless_characters(self, input):
+    def preprocess(self, input):
         """
         :param input: String
         :return: void
         """
-        preprocessed = filter(lambda x: bool(x), map(self.preprocess, input.split()))
+        preprocessed = filter(lambda x: bool(x), map(self.preprocessTerminator, input.lower().split()))
+        ret = self.combineNumbers(preprocessed)
+        return " ".join(ret)
+
+    def preprocessTerminator(self, word):
+        """
+        remove trailing '.' and ','
+        """
+        if word[-1] in (",", "."):
+            word = word[0:-1]
+        return table.get(word, word)
+
+    def combineNumbers(self, preprocessed):
+        """
+        combine separate numbers into one
+        :param preprocessed: "1 2 . 34 . , 5 + 6 + 8 , 9"
+        :return: "12345 + 6 + 89"
+        """
         ret = []
         i = 0
         while i < len(preprocessed):
@@ -24,19 +41,13 @@ class EnglishToLatex(object):
                 i -= 1
                 ret.append(temp)
             i += 1
+        return ret
 
-        return " ".join(ret)
 
-    def preprocess(self, word):
-        if word[-1] in (",", "."):
-            return word[0:-1]
-        return table.get(word, word)
-
-    def to_latex(self, input):
-        preprocessed_input = self.preprocess_meaningless_characters(input)
+    def createAllTokens(self, input):
         tokens = []
 
-        for elem in preprocessed_input.split():
+        for elem in input.split():
             if self.is_left(elem) or \
                     self.is_right(elem) or \
                     self.is_plus(elem) or \
@@ -46,8 +57,15 @@ class EnglishToLatex(object):
                 tokens.append(Token(elem, False))
             elif len(elem) > 0:
                 tokens.append(Token(elem, True))
+        return tokens
+
+
+    def to_latex(self, input):
+        preprocessed_input = self.preprocess(input)
+        tokens = self.createAllTokens(preprocessed_input)
 
         stack = []
+        # handle parenthesis.
         for token in tokens:
             if self.is_right(token.val):
                 to_eval = []
@@ -99,16 +117,16 @@ class EnglishToLatex(object):
         return elem.lower() == "right"
 
     def is_plus(self, elem):
-        return elem.lower() == "plus" or elem.lower() == "+"
+        return elem.lower() == "+"
 
     def is_minus(self, elem):
-        return elem.lower() == "minus" or elem.lower() == "-"
+        return elem.lower() == "-"
 
     def is_times(self, elem):
-        return elem.lower() == "times" or elem.lower() == "multiply" or elem.lower() == "*"
+        return elem.lower() == "*"
 
     def is_divide(self, elem):
-        return elem.lower() == "divide" or elem.lower() == "divided" or elem.lower() == "/"
+        return elem.lower() == "/"
 
 
 class Token(object):
@@ -120,10 +138,10 @@ class Token(object):
 if __name__ == '__main__':
     s = EnglishToLatex()
 
-    assert s.preprocess_meaningless_characters("1 2 . 34 . , 5 + 6 + 8 , 9") == "12345 + 6 + 89"
+    assert s.preprocess("1 2 . 34 . , 5 + 6 + 8 , 9") == "12345 + 6 + 89"
 
     assert s.to_latex("124 + 4 * 5") == "124 + 4 \\times 5"
     assert s.to_latex("1 + 2 * 3, - 4 divided by 5.") == "1 + 2 \\times 3 - \\frac{4}{5}"
     assert s.to_latex("3 times left 2 + 4 right.") == "3 \\times (2 + 4)"
-    assert s.to_latex(
-        "2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
+    print s.to_latex("2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right")
+    assert s.to_latex("2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
