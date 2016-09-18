@@ -29,3 +29,18 @@ python server.py
 ```
 
 Now the server is running locally at port 5000.
+
+
+## API
+
+```
+curl -X POST -d 'english=One plus 2' http://localhost:5000/
+```
+
+##### Return:
+```
+{
+  "latex": "1 + 2",
+  "status": true
+}
+```

@@ -1,6 +1,7 @@
 replace_table = [             # this order cannot be changed
     ("to the power of", "power"),
     ("to power of", "power"),
+    ("to power", "power"),
     ("power of", "power"),
 
     ("square root of", "2 root"),
@@ -75,6 +76,8 @@ table = {
     "squares": "",
     "squared": "square",
 
+    "power": "^",
+    "powers": "^",
 
     "equals": "equal",
 

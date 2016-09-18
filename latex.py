@@ -11,8 +11,20 @@ class EnglishToLatex(object):
         """
         for p, r in replace_table:
             input_ = input_.replace(p, r)
-        preprocessed = filter(lambda x: bool(x), map(self.preprocessTerminator, input_.lower().split()))
+        preprocessed = []
+        num_left = 0
+        for word in input_.lower().split():
+            word = self.preprocessTerminator(word)
+            if word == "left":
+                num_left += 1
+            elif word == "right":
+                num_left -= 1
+            if word:
+                preprocessed.append(word)
         ret = self.combineNumbers(preprocessed)
+        while num_left > 0:
+            ret.append("right")
+            num_left -= 1
         return " ".join(ret)
 
     def preprocessTerminator(self, word):
@@ -93,6 +105,11 @@ class EnglishToLatex(object):
                 i += 1
                 divisor = tokens[i]
                 res.append(self.to_frac(dividend, divisor))
+            elif self.is_root(tokens[i].val):
+                nth = res.pop()
+                i += 1
+                value = tokens[i]
+                res.append(self.to_root(nth, value))
             elif self.is_times(tokens[i].val):
                 res.append(Token("\\times", False))
             elif self.is_plus(tokens[i].val):
@@ -106,8 +123,11 @@ class EnglishToLatex(object):
         return Token(" ".join(map(lambda x: x.val, res)), True)
 
     def to_frac(self, dividend, divisor):
-        # val = "\\frac{\{\}}{\{\}}".format(dividend.val, divisor.val)
         val = "\\frac{" + dividend.val + "}{" + divisor.val + "}"
+        return Token(val, True)
+
+    def to_root(self, nth, value):
+        val = "\\sqrt[" + nth.val + "]{" + value.val + "}"
         return Token(val, True)
 
     def is_left(self, elem):
@@ -128,6 +148,9 @@ class EnglishToLatex(object):
     def is_divide(self, elem):
         return elem.lower() == "/"
 
+    def is_root(self, elem):
+        return elem.lower() == "root"
+
 
 class Token(object):
     def __init__(self, val, atomic):
@@ -138,11 +161,11 @@ class Token(object):
 if __name__ == '__main__':
     s = EnglishToLatex()
 
-    assert s.preprocess("x square") == "x power 2"
-    assert s.preprocess("(x + 1) square") == "(x + 1) power 2"
-    assert s.preprocess("x power of 3") == "x power 3"
-    assert s.preprocess("x to power of 3") == "x power 3"
-    assert s.preprocess("x to the power of 3") == "x power 3"
+    assert s.preprocess("x square") == "x ^ 2"
+    assert s.preprocess("(x + 1) square") == "(x + 1) ^ 2"
+    assert s.preprocess("x power of 3") == "x ^ 3"
+    assert s.preprocess("x to power of 3") == "x ^ 3"
+    assert s.preprocess("x to the power of 3") == "x ^ 3"
 
     assert s.preprocess("square root of x") == "2 root x"
     assert s.preprocess("square root of x + 1") == "2 root x + 1"
@@ -161,3 +184,9 @@ if __name__ == '__main__':
     assert s.to_latex("3 times left 2 + 4 right.") == "3 \\times (2 + 4)"
     assert s.to_latex(
         "2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
+    assert s.to_latex("2 plus 3 divided by left 2 - 1") == "2 + \\frac{3}{(2 - 1)}"   # add missing right parentheses
+
+    assert s.to_latex("2 to the power of 3 divided by left 2 - 1") == "2 ^ \\frac{3}{(2 - 1)}"
+
+    assert s.to_latex("2 root of 3") == "\sqrt[2]{3}"
+    assert s.to_latex("2 to power left Ninth root of x ") == "2 ^ (\sqrt[9]{x})"
