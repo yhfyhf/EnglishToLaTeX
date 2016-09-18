@@ -43,7 +43,6 @@ class EnglishToLatex(object):
             i += 1
         return ret
 
-
     def createAllTokens(self, input):
         tokens = []
 
@@ -58,7 +57,6 @@ class EnglishToLatex(object):
             elif len(elem) > 0:
                 tokens.append(Token(elem, True))
         return tokens
-
 
     def to_latex(self, input):
         preprocessed_input = self.preprocess(input)
@@ -140,8 +138,11 @@ if __name__ == '__main__':
 
     assert s.preprocess("1 2 . 34 . , 5 + 6 + 8 , 9") == "12345 + 6 + 89"
 
+    assert s.to_latex("1 plus 2") == "1 + 2"
     assert s.to_latex("124 + 4 * 5") == "124 + 4 \\times 5"
     assert s.to_latex("1 + 2 * 3, - 4 divided by 5.") == "1 + 2 \\times 3 - \\frac{4}{5}"
     assert s.to_latex("3 times left 2 + 4 right.") == "3 \\times (2 + 4)"
-    print s.to_latex("2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right")
-    assert s.to_latex("2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
+    assert s.to_latex(
+        "2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \times (\frac{(3 + 2)}{(2 - 1)})"
+    assert s.to_latex(
+        "2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
