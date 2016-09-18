@@ -69,6 +69,7 @@ class EnglishToLatex(object):
         tokens = res
         res = []
         i = 0
+        count = 0
         while i < len(tokens):
             if i < len(tokens) - 1 and self.is_power(tokens[i].val):
                 res.append(tokens[i])
@@ -78,6 +79,9 @@ class EnglishToLatex(object):
                 res.append(next_token)
             else:
                 res.append(tokens[i])
+            count += 1
+            if count % 12 == 0:
+                res.append(Token("\\\\", False))
             i += 1
 
         return Token(" ".join(map(lambda x: x.val, res)), True)
@@ -94,7 +98,7 @@ class EnglishToLatex(object):
         return elem.lower() == "left"
 
     def is_right(self, elem):
-        return elem.lower() == "right"
+        return elem.lower() in ("right", "rights", "light", "lights")
 
     def is_plus(self, elem):
         return elem.lower() == "+"
@@ -140,3 +144,5 @@ if __name__ == '__main__':
     assert s.to_latex("3 to the power of left b divided by c") == "3 ^ {(\\frac{b}{c})}"
 
     assert s.to_latex("3 to the power of left b divided by c right") == "3 ^ {(\\frac{b}{c})}"
+
+    print s.to_latex("3 plus x plus x plus x plus x plus x plus x plus x plus x plus x plus x plus x plus x plus x plus x plus x ")
