@@ -20,3 +20,12 @@ git clone https://github.com/yhfyhf/EnglishToLaTeX src
 cd src
 pip install -r requirements.txt
 ```
+
+## Run Server
+Make sure you have switched into the src directory.
+
+```
+python server.py
+```
+
+Now the server is running locally at port 5000.
