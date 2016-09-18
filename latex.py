@@ -1,62 +1,8 @@
 # encoding: utf-8
-from utils import Utils
-from table import replace_table, table
+from preprocess import Preprocess
 
 
 class EnglishToLatex(object):
-    def preprocess(self, input_):
-        """
-        :param input_: String
-        :return: void
-        """
-        for p, r in replace_table:
-            input_ = input_.replace(p, r)
-        preprocessed = []
-        num_left = 0
-        for word in input_.lower().split():
-            word = self.preprocessTerminator(word)
-            if word == "left":
-                num_left += 1
-            elif word == "right":
-                num_left -= 1
-            if word:
-                preprocessed.append(word)
-        ret = self.combineNumbers(preprocessed)
-        while num_left > 0:
-            ret.append("right")
-            num_left -= 1
-        return " ".join(ret)
-
-    def preprocessTerminator(self, word):
-        """
-        remove trailing '.' and ','
-        """
-        if word[-1] in (",", "."):
-            word = word[0:-1]
-        return table.get(word, word)
-
-    def combineNumbers(self, preprocessed):
-        """
-        combine separate numbers into one
-        :param preprocessed: "1 2 . 34 . , 5 + 6 + 8 , 9"
-        :return: "12345 + 6 + 89"
-        """
-        ret = []
-        i = 0
-        while i < len(preprocessed):
-            if not Utils.is_float(preprocessed[i]):
-                ret.append(preprocessed[i])
-            else:
-                temp = preprocessed[i]
-                i += 1
-                while i < len(preprocessed) and Utils.is_float(preprocessed[i]):
-                    temp += preprocessed[i]
-                    i += 1
-                i -= 1
-                ret.append(temp)
-            i += 1
-        return ret
-
     def createAllTokens(self, input):
         tokens = []
 
@@ -73,7 +19,7 @@ class EnglishToLatex(object):
         return tokens
 
     def to_latex(self, input):
-        preprocessed_input = self.preprocess(input)
+        preprocessed_input = Preprocess.preprocess(input)
         tokens = self.createAllTokens(preprocessed_input)
 
         stack = []
@@ -120,6 +66,20 @@ class EnglishToLatex(object):
                 res.append(tokens[i])
             i += 1
 
+        tokens = res
+        res = []
+        i = 0
+        while i < len(tokens):
+            if i < len(tokens) - 1 and self.is_power(tokens[i].val):
+                res.append(tokens[i])
+                i += 1
+                next_token = tokens[i]
+                next_token.val = "{" + next_token.val + "}"
+                res.append(next_token)
+            else:
+                res.append(tokens[i])
+            i += 1
+
         return Token(" ".join(map(lambda x: x.val, res)), True)
 
     def to_frac(self, dividend, divisor):
@@ -151,6 +111,9 @@ class EnglishToLatex(object):
     def is_root(self, elem):
         return elem.lower() == "root"
 
+    def is_power(self, elem):
+        return elem == "^"
+
 
 class Token(object):
     def __init__(self, val, atomic):
@@ -161,32 +124,19 @@ class Token(object):
 if __name__ == '__main__':
     s = EnglishToLatex()
 
-    assert s.preprocess("x square") == "x ^ 2"
-    assert s.preprocess("(x + 1) square") == "(x + 1) ^ 2"
-    assert s.preprocess("x power of 3") == "x ^ 3"
-    assert s.preprocess("x to power of 3") == "x ^ 3"
-    assert s.preprocess("x to the power of 3") == "x ^ 3"
-
-    assert s.preprocess("square root of x") == "2 root x"
-    assert s.preprocess("square root of x + 1") == "2 root x + 1"
-    assert s.preprocess("square root of (x + 1)") == "2 root (x + 1)"
-    assert s.preprocess("cube root of x") == "3 root x"
-    assert s.preprocess("cube root of x + 1") == "3 root x + 1"
-    assert s.preprocess("seventh root of x") == "7 root x"
-    assert s.preprocess("seven root of x") == "7 root x"
-    assert s.preprocess("seven root x") == "7 root x"
-
-    assert s.preprocess("1 2 . 34 . , 5 + 6 + 8 , 9") == "12345 + 6 + 89"
-
     assert s.to_latex("1 plus 2") == "1 + 2"
     assert s.to_latex("124 + 4 * 5") == "124 + 4 \\times 5"
     assert s.to_latex("1 + 2 * 3, - 4 divided by 5.") == "1 + 2 \\times 3 - \\frac{4}{5}"
     assert s.to_latex("3 times left 2 + 4 right.") == "3 \\times (2 + 4)"
     assert s.to_latex(
         "2 times left left 3 + 2. Right. Divided by left 2 minus. 1. right right") == "2 \\times (\\frac{(3 + 2)}{(2 - 1)})"
-    assert s.to_latex("2 plus 3 divided by left 2 - 1") == "2 + \\frac{3}{(2 - 1)}"   # add missing right parentheses
+    assert s.to_latex("2 plus 3 divided by left 2 - 1") == "2 + \\frac{3}{(2 - 1)}"  # add missing right parentheses
 
-    assert s.to_latex("2 to the power of 3 divided by left 2 - 1") == "2 ^ \\frac{3}{(2 - 1)}"
+    assert s.to_latex("2 to the power of 3 divided by left 2 - 1") == "2 ^ {\\frac{3}{(2 - 1)}}"
 
     assert s.to_latex("2 root of 3") == "\sqrt[2]{3}"
-    assert s.to_latex("2 to power left Ninth root of x ") == "2 ^ (\sqrt[9]{x})"
+    assert s.to_latex("2 to power left Ninth root of x ") == "2 ^ {(\sqrt[9]{x})}"
+
+    assert s.to_latex("3 to the power of left b divided by c") == "3 ^ {(\\frac{b}{c})}"
+
+    assert s.to_latex("3 to the power of left b divided by c right") == "3 ^ {(\\frac{b}{c})}"
