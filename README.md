@@ -2,6 +2,8 @@
 
 This service powers the back-end server for the Speech-to-LaTeX iOS app. See the demo here: [https://www.youtube.com/watch?v=dqY-oIhNEQ8](https://www.youtube.com/watch?v=dqY-oIhNEQ8)
 
+The source code of the iOS app is here: [https://github.com/MichaelGuoXY/AudioToLaTeX](https://github.com/MichaelGuoXY/AudioToLaTeX)
+
 Created at the Big Red Hackathon.
 
 ## Install
@@ -9,7 +11,8 @@ Make sure you have installed Python, pip and virtualenv.
 
 ```
 brew install python
-pip instal virtualenv
+easy_install pip
+pip install virtualenv
 ```
 
 Switch to the directory you want to put your project.
