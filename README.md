@@ -1,6 +1,8 @@
 # English to LaTeX
 
-This packages converts english into LaTeX.
+This service powers the back-end server for the Speech-to-LaTeX iOS app. See the [demo](https://www.youtube.com/watch?v=dqY-oIhNEQ8) here.
+
+Created at the Big Red Hackathon.
 
 ## Install
 Make sure you have installed Python, pip and virtualenv.
@@ -34,13 +36,13 @@ Now the server is running locally at port 5000.
 ## API
 
 ```
-curl -X POST -d 'english=One plus 2' http://localhost:5000/
+curl -X POST -d 'english=One plus 2 divided by 4' http://localhost:5000/
 ```
 
 ##### Return:
 ```
 {
-  "latex": "1 + 2",
+  "latex": "1 + \frac{2}{4}",
   "status": true
 }
 ```
