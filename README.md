@@ -1,6 +1,6 @@
 # English to LaTeX
 
-This service powers the back-end server for the Speech-to-LaTeX iOS app. See the [demo](https://www.youtube.com/watch?v=dqY-oIhNEQ8) here.
+This service powers the back-end server for the Speech-to-LaTeX iOS app. See the demo here: [https://www.youtube.com/watch?v=dqY-oIhNEQ8](https://www.youtube.com/watch?v=dqY-oIhNEQ8)
 
 Created at the Big Red Hackathon.
 
